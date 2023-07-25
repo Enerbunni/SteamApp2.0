@@ -241,7 +241,7 @@ const Profile = ({ route, navigation }) => {
                     total += allGames['games'][i]['playtime_forever'];
 
                     //Update the price of games if the prices havent been updated in 6 hours
-                    if ((Number(lastPriceUpdate) + 21600000) <= new Date().getTime() || forceUpdate) {
+                    if ((Number(lastPriceUpdate) + 21600000) <= new Date().getTime() || forceUpdate == true) {
                         let appid = allGames['games'][i]['appid'];
                         gamesPromises.push(axios.get("http://store.steampowered.com/api/appdetails?filters=price_overview&appids=" + appid));
                     }
@@ -273,7 +273,7 @@ const Profile = ({ route, navigation }) => {
                         }
                         catch (e) {
                             //console.log("Error getting detailed game! Not Trying SteamSpy and assuming its free...");
-                            console.log(game)
+                            //console.log(game)
                             console.log(e)
                         }
 
@@ -311,7 +311,7 @@ const Profile = ({ route, navigation }) => {
             }
 
             //If its been longer then 6 hours then update the prices
-            if ((Number(lastPriceUpdate) + 21600000) <= new Date().getTime() || forceUpdate) {
+            if ((Number(lastPriceUpdate) + 21600000) <= new Date().getTime() || forceUpdate == true) {
                 console.log("Updating prices, 6 hour update");
 
                 lastPriceUpdate = new Date().getTime().toString();

@@ -42,6 +42,7 @@ const Settings = ({ navigation }) => {
     const logout = async () => {
         try {
             await AsyncStorage.removeItem('@SteamID')
+            await AsyncStorage.removeItem('@User')
             await AsyncStorage.removeItem('@LastUpdate')
             await AsyncStorage.removeItem('@LastPriceUpdate')
             await AsyncStorage.removeItem('@ReloadRequired')
