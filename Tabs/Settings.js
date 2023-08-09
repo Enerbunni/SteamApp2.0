@@ -1,4 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
@@ -42,7 +41,7 @@ const Settings = ({ navigation }) => {
     const logout = async () => {
         try {
             await AsyncStorage.removeItem('@SteamID')
-            await AsyncStorage.removeItem('@User')
+            //await AsyncStorage.removeItem('@User')
             await AsyncStorage.removeItem('@LastUpdate')
             await AsyncStorage.removeItem('@LastPriceUpdate')
             await AsyncStorage.removeItem('@ReloadRequired')
@@ -71,12 +70,15 @@ const Settings = ({ navigation }) => {
     );
 
     return (
-        <Box flex={1} h={'100%'} w={'100%'} bg={useColorModeValue("gray.100", "gray.800")}>
-            <Skeleton h={50} isLoaded={isLoggedIn}>
-                <Button my={10} onPress={logout} bg={useColorModeValue("blue.500", "green.500")}>Log Out</Button>
-                <Button my={10} onPress={logout} >Log Out</Button>
-                <Button onPress={toggleColor}>Toggle</Button>
-            </Skeleton>
+        <Box bg={useColorModeValue("gray.100", "gray.800")} h="full">
+            <Box margin="10" padding="2" marginTop="100">
+                <Skeleton h={50} isLoaded={isLoggedIn}>
+                    <Text alignSelf="center">Click below to logout, you will need to enter your steamID again.</Text>
+                    <Button my="4"  onPress={logout} bg={useColorModeValue("blue.500", "green.500")}>Log Out</Button>
+                    <Text mt="4" alignSelf="center" >Click below to toggle to <Text>{useColorModeValue("Light Mode", "Dark Mode")}</Text></Text>
+                    <Button my="4" onPress={toggleColor} ><Text color="white">{useColorModeValue("Light Mode", "Dark Mode")}</Text></Button>
+                </Skeleton>
+            </Box>
         </Box>
     );
 }

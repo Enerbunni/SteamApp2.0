@@ -2,13 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 export async function initDB(SteamID) {
-    console.log(SteamID)
     let lastUpdate = await AsyncStorage.getItem("@LastUpdate");
     //if we dont have a last update then refresh everything 
     if (lastUpdate == null) {
         lastUpdate = new Date().getTime().toString();
         await AsyncStorage.setItem("@LastUpdate", JSON.stringify(lastUpdate))
-        console.log("Refreshing from APIs - lastUpdate missing")
+        console.log("Refreshing from APIs - lastUpdate missing, SteamID: " + SteamID)
 
         await updateOwnedGames(SteamID).then(async (response) => {
             //await updateUserAchievements(SteamID);
@@ -31,12 +30,11 @@ export async function initDB(SteamID) {
         await updateUser(SteamID);
         await updateRecentlyPlayedGames(SteamID);
     }
+    console.log("Init Finished")
+    return 1
 }
 
 export async function getAchievementsForGame(id, appid) {
-    console.log(id)
-    console.log(appid)
-    console.log("ach")
     return await axios.get(("https://rmf8ha7aob.execute-api.us-east-2.amazonaws.com/Prod/ISteamUserStats/GetPlayerAchievements/v1/?steamid=" + id + "&appid=" + appid))
     .catch((response) => {
         console.log("Error getting achievements played games from DB");
@@ -50,11 +48,13 @@ async function updateUser(id) {
     axios.get(("https://rmf8ha7aob.execute-api.us-east-2.amazonaws.com/Prod/ISteamUser/GetPlayerSummaries/v0002/?steamids=" + id + "&format=json"))
         .then(async (response) => {
             await AsyncStorage.setItem('@User', JSON.stringify(response.data.response.players[0]))
-            //console.log("User Updated from DB");
+            console.log("User Updated from DB, set to " + JSON.stringify(response.data.response.players[0]));
+            return 1
         })
         .catch((response) => {
             console.log("Error getting user from DB");
             console.log(response);
+            return
         });
 }
 
@@ -65,12 +65,14 @@ async function updateOwnedGames(id) {
                 await AsyncStorage.setItem('@OwnedGames', JSON.stringify(response.data.response));
                 //console.log(response.data);
                 console.log(id);
-                //console.log("Owned games updated from DB");
+                console.log("Owned games updated from DB");
+                return
             }
         })
         .catch((response) => {
             console.log("Error getting all owned games from DB");
             console.log(response);
+            return
         });
 }
 
@@ -79,10 +81,12 @@ async function updateRecentlyPlayedGames(id) {
         .then(async (response) => {
             await AsyncStorage.setItem('@RecentGames', JSON.stringify(response.data.response));
             //console.log("Recently played games updated from DB");
+            return
         })
         .catch((response) => {
             console.log("Error getting recently played games from DB");
             console.log(response);
+            return
         });
 }
 

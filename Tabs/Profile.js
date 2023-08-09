@@ -52,7 +52,7 @@ const Profile = ({ route, navigation }) => {
             // Do something when the screen is focused
             console.log("Focused: Profile")
 
-            //reload();
+            // reload();
 
             // if (Boolean(JSON.parse(reloadNeeded)) == true) {
             //     console.log("Reloading profile...")
@@ -246,7 +246,7 @@ const Profile = ({ route, navigation }) => {
                         gamesPromises.push(axios.get("http://store.steampowered.com/api/appdetails?filters=price_overview&appids=" + appid));
                     }
                 }
-                console.log("ForcePriceUpdate is true, gamePromises length is: " + gamesPromises.length)
+                console.log("gamePromises length is: " + gamesPromises.length)
 
                 await Promise.all(gamesPromises).then((response) => {
                     let gameIter = 0;
@@ -258,12 +258,14 @@ const Profile = ({ route, navigation }) => {
                                 //idk dont do the other things if its free (itll break)
                             }
                             else if (game.data[appid]['data']['price_overview']['currency'] !== "USD") {
-                                axios.get("https://steamspy.com/api.php?request=appdetails&appid=" + appid)
-                                    .then((result) => {
-                                        console.log("Got price from SteamSpy becuase the currency wasnt USD");
-                                        currentValue += Number(result.data['price']);
-                                        gamesWithPrice++;
-                                    });
+                                //!!! CAN IMPROVE STAT ACCURACY HERE
+
+                                // axios.get("https://steamspy.com/api.php?request=appdetails&appid=" + appid)
+                                //     .then((result) => {
+                                //         console.log("Got price from SteamSpy becuase the currency wasnt USD");
+                                //         currentValue += Number(result.data['price']);
+                                //         gamesWithPrice++;
+                                //     });
                             }
                             else {
                                 //console.log("current is: " + currentValue + ". Lowest is: . Adding " + response.data[appid]['data']['price_overview']['final'] + ". (" + appid + "). " + response.data[appid]['data']['name']);
@@ -375,7 +377,7 @@ const Profile = ({ route, navigation }) => {
                         <HStack>
                             <Image source={{ uri: user['avatarfull'] }} alt="Profile Picture" rounded={'lg'} style={{ height: 100, width: 100 }} />
                             <VStack flex={1}>
-                                <Progress w="90%" value={77} alignSelf="center" mt='5' />
+                                <Progress w="90%" value={((totalGamesPlayed / totalGamesOwned) * 100).toFixed(1)} alignSelf="center" mt='5' />
                                 <Text fontSize={'xs'} color={useColorModeValue('dark.400', 'dark.500')} alignSelf={'center'}>{totalGamesPlayed}/{totalGamesOwned}</Text>
                                 <HStack flex={1} alignItems={'center'} justifyContent='space-around'>
                                     <Center>

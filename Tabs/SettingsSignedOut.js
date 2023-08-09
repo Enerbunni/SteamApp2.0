@@ -1,19 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Button, useColorMode, useColorModeValue, Skeleton, Box, Text, Input } from 'native-base';
+import { Button, useColorMode, useColorModeValue, Skeleton, Box, Text, Input, FormControl } from 'native-base';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LogBox } from 'react-native';
 import { initDB } from '../Components/DataController';
 import SteamIDHelp from '../Components/SteamIDHelp';
 import PrivateUserHelp from '../Components/PrivateUserHelp';
+import Ionicons from '@expo/vector-icons/Ionicons';
+
 
 LogBox.ignoreLogs([
     'Non-serializable values were found in the navigation state',
 ]);
 
-const SignedOut = ({ navigation }) => {
+const SettingsSignedOut = ({ navigation }) => {
     const [steamID, setSteamID] = useState('');
     const [UserSignInStep, setUserSignInStep] = useState("SteamID");
+    const [inputError, setInputError] = useState(false)
 
     const checkSignedIn = async () => {
         try {
@@ -57,16 +60,20 @@ const SignedOut = ({ navigation }) => {
             console.log("Error, Problem with User")
             console.log(User)
             setUserSignInStep("SteamID")
+            setInputError(true)
         }
         else if (User.data['response']['players'].length === 1 && User.data['response']['players'][0]["communityvisibilitystate"] === 3) {
             await saveSteamID(steamID);
-            await initDB(steamID);
-            await AsyncStorage.setItem('@ReloadRequired', JSON.stringify(true));
-            navigation.navigate('main', { screen: 'Profile' }, { reloadNeeded: true });
+            await initDB(steamID).then(async (response) => {
+                console.log("init should be finished")
+                await AsyncStorage.setItem('@ReloadRequired', JSON.stringify(true));
+                navigation.navigate('main', { screen: 'Profile' }, { reloadNeeded: true });
+            });
         }
         else {
             console.log("Error, Private Profile")
             setUserSignInStep("PrivateProfile")
+            setInputError(true)
         }
     }
 
@@ -76,18 +83,24 @@ const SignedOut = ({ navigation }) => {
             <Box bg="gray.200" margin="10" padding="2" marginTop="10">
                 <Text marginBottom="2">Enter your SteamID below.</Text>
                 <Text marginBottom="1" fontSize="12" color="gray.500">You only enter this once</Text>
-                <Input
-                    placeholder="For example: '76561198256124603'"
-                    onChangeText={newText => setSteamID(newText)} />
+                <FormControl isInvalid={inputError}>
+                    <Input
+                        placeholder="For example: '76561198256124603'"
+                        onChangeText={newText => setSteamID(newText)} />
+                    <FormControl.ErrorMessage leftIcon={<Ionicons name={'alert-circle-outline'} size={32} color={"red"}/>}>
+                        {(UserSignInStep == "SteamID") && <Text>Error, double check your SteamID</Text>}
+                        {(UserSignInStep == "PrivateProfile") && <Text>Error, double check your profile visibility settings</Text>}
+                    </FormControl.ErrorMessage>
+                </FormControl>
                 <Button onPressIn={onSubmitID} mt="6" width="200" alignSelf="center">
                     <Text style={{ color: "white" }}>Save SteamID</Text>
                 </Button>
             </Box>
-            {(UserSignInStep == "SteamID") && <SteamIDHelp SignInStep={UserSignInStep}/>}
-            {(UserSignInStep == "PrivateProfile") && <PrivateUserHelp SignInStep={UserSignInStep}/>}
+            {(UserSignInStep == "SteamID") && <SteamIDHelp SignInStep={UserSignInStep} />}
+            {(UserSignInStep == "PrivateProfile") && <PrivateUserHelp SignInStep={UserSignInStep} />}
         </>
     );
 }
 
-export default SignedOut2
+export default SettingsSignedOut
 
