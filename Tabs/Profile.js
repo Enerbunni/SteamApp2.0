@@ -223,9 +223,9 @@ const Profile = ({ route, navigation }) => {
             }
 
             if (allGames != null) {
-                const gamesPromises = [];
-
-
+                const gamesPromises = []
+                gamesPromises.push(new Array())
+                let gamesPushed = 0;
                 mostPlayedGame = allGames['games'][0];
 
                 //Loop through all games, depending on some if statments update the users stats. allGames['game_count']
@@ -242,49 +242,64 @@ const Profile = ({ route, navigation }) => {
 
                     //Update the price of games if the prices havent been updated in 6 hours
                     if ((Number(lastPriceUpdate) + 21600000) <= new Date().getTime() || forceUpdate == true) {
+                        if(gamesPushed >= 50) {
+                            gamesPushed = 0;
+                            gamesPromises.push(new Array())
+                        }
+
                         let appid = allGames['games'][i]['appid'];
-                        gamesPromises.push(axios.get("http://store.steampowered.com/api/appdetails?filters=price_overview&appids=" + appid));
+                        gamesPromises[gamesPromises.length - 1].push(axios.get("http://store.steampowered.com/api/appdetails?filters=price_overview&appids=" + appid));
+                        gamesPushed++;
                     }
                 }
                 console.log("gamePromises length is: " + gamesPromises.length)
+                console.log(gamesPromises)
 
-                await Promise.all(gamesPromises).then((response) => {
-                    let gameIter = 0;
-                    response.forEach(async game => {
-                        let appid = allGames['games'][gameIter]['appid'];
-                        //console.log(game.data[appid]['data'])
-                        try {
-                            if (game.data[appid]['data']['is_free']) {
-                                //idk dont do the other things if its free (itll break)
-                            }
-                            else if (game.data[appid]['data']['price_overview']['currency'] !== "USD") {
-                                //!!! CAN IMPROVE STAT ACCURACY HERE
-
-                                // axios.get("https://steamspy.com/api.php?request=appdetails&appid=" + appid)
-                                //     .then((result) => {
-                                //         console.log("Got price from SteamSpy becuase the currency wasnt USD");
-                                //         currentValue += Number(result.data['price']);
-                                //         gamesWithPrice++;
-                                //     });
-                            }
-                            else {
-                                //console.log("current is: " + currentValue + ". Lowest is: . Adding " + response.data[appid]['data']['price_overview']['final'] + ". (" + appid + "). " + response.data[appid]['data']['name']);
-                                currentValue += Number(game.data[appid]['data']['price_overview']['final']);
-                                gamesWithPrice++;
-                            }
-                        }
-                        catch (e) {
-                            //console.log("Error getting detailed game! Not Trying SteamSpy and assuming its free...");
+                for(let i = 0; i < gamesPromises.length; i++) {
+                    //console.log(gamesPromises[i])
+                    await Promise.all(gamesPromises[i]).then((response) => {
+                        console.log("data is: " + response[0].data)
+                        let gameIter = 0;
+                        response.forEach(async game => {
+                            let appid = allGames['games'][gameIter]['appid'];
                             //console.log(game)
-                            console.log(e)
-                        }
-
-                        gameIter++;
+                            //console.log(game.data[appid]['data'])
+                            //console.log(gameIter)
+                            try {
+                                if (game.data[appid]['data']['is_free']) {
+                                    //idk dont do the other things if its free (itll break)
+                                }
+                                else if (game.data[appid]['data']['price_overview']['currency'] !== "USD") {
+                                    //!!! CAN IMPROVE STAT ACCURACY HERE
+    
+                                    // axios.get("https://steamspy.com/api.php?request=appdetails&appid=" + appid)
+                                    //     .then((result) => {
+                                    //         console.log("Got price from SteamSpy becuase the currency wasnt USD");
+                                    //         currentValue += Number(result.data['price']);
+                                    //         gamesWithPrice++;
+                                    //     });
+                                }
+                                else {
+                                    //console.log("current is: " + currentValue + ". Lowest is: . Adding " + response.data[appid]['data']['price_overview']['final'] + ". (" + appid + "). " + response.data[appid]['data']['name']);
+                                    currentValue += Number(game.data[appid]['data']['price_overview']['final']);
+                                    gamesWithPrice++;
+                                }
+                            }
+                            catch (e) {
+                                //console.log("Error getting detailed game! Not Trying SteamSpy and assuming its free...");
+                                //console.log(game)
+                                console.log(e)
+                            }
+    
+                            gameIter++;
+                        });
+                    }).catch(async (response) => {
+                        console.log(response);
+                        console.log(response.data);
+                        console.log(response.response.data);
+                        console.log("it broke here, line 280 ish");
                     });
-                }).catch(async (response) => {
-                    console.log(response);
-                    console.log("it broke here, line 280 ish");
-                });
+                }
 
                 getAchievementsForGame(id, mostPlayedGame['appid']).then((response) => {
                     //console.log(response.data.playerstats.gameName);

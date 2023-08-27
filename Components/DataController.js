@@ -2,36 +2,44 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 export async function initDB(SteamID) {
-    let lastUpdate = await AsyncStorage.getItem("@LastUpdate");
-    //if we dont have a last update then refresh everything 
-    if (lastUpdate == null) {
-        lastUpdate = new Date().getTime().toString();
-        await AsyncStorage.setItem("@LastUpdate", JSON.stringify(lastUpdate))
-        console.log("Refreshing from APIs - lastUpdate missing, SteamID: " + SteamID)
-
-        await updateOwnedGames(SteamID).then(async (response) => {
-            //await updateUserAchievements(SteamID);
-        });
-        await updateUser(SteamID);
-        await updateRecentlyPlayedGames(SteamID);
-    }
-
-    //Refreshes every (6) hour
-    if ((Number(JSON.parse(lastUpdate)) + 21600000) <= new Date().getTime()) {
-
-        lastUpdate = new Date().getTime().toString();
-        await AsyncStorage.setItem("@LastUpdate", JSON.stringify(lastUpdate))
-
-        console.log("Refreshing from APIs - 6 hour update")
-
-        await updateOwnedGames(SteamID).then(async (response) => {
-            //await updateUserAchievements(SteamID);
-        });
-        await updateUser(SteamID);
-        await updateRecentlyPlayedGames(SteamID);
-    }
-    console.log("Init Finished")
-    return 1
+    await new Promise(async (resolve) => {
+        let lastUpdate = await AsyncStorage.getItem("@LastUpdate");
+        let user = null
+        //if we dont have a last update then refresh everything 
+        if (lastUpdate == null) {
+            lastUpdate = new Date().getTime().toString();
+            await AsyncStorage.setItem("@LastUpdate", JSON.stringify(lastUpdate))
+            console.log("Refreshing from APIs - lastUpdate missing, SteamID: " + SteamID)
+    
+            await updateOwnedGames(SteamID).then(async (response) => {
+                //await updateUserAchievements(SteamID);
+                console.log("updateOwnedGames Finished")
+            });
+            console.log("This should be after updateOwnedGames Finished")
+            user = await updateUser(SteamID);
+            await updateRecentlyPlayedGames(SteamID);
+        }
+    
+        //Refreshes every (6) hour
+        if ((Number(JSON.parse(lastUpdate)) + 21600000) <= new Date().getTime()) {
+    
+            lastUpdate = new Date().getTime().toString();
+            await AsyncStorage.setItem("@LastUpdate", JSON.stringify(lastUpdate))
+    
+            console.log("Refreshing from APIs - 6 hour update")
+    
+            await updateOwnedGames(SteamID).then(async (response) => {
+                //await updateUserAchievements(SteamID);
+                console.log("updateOwnedGames Finished")
+            });
+            console.log("This should be after updateOwnedGames Finished")
+            user = await updateUser(SteamID);
+            await updateRecentlyPlayedGames(SteamID);
+        }
+    
+        console.log("Init Finished, User is: " + user)
+        resolve();
+    })
 }
 
 export async function getAchievementsForGame(id, appid) {
@@ -45,48 +53,44 @@ export async function getAchievementsForGame(id, appid) {
 
 
 async function updateUser(id) {
-    axios.get(("https://rmf8ha7aob.execute-api.us-east-2.amazonaws.com/Prod/ISteamUser/GetPlayerSummaries/v0002/?steamids=" + id + "&format=json"))
+    await axios.get(("https://rmf8ha7aob.execute-api.us-east-2.amazonaws.com/Prod/ISteamUser/GetPlayerSummaries/v0002/?steamids=" + id + "&format=json"))
         .then(async (response) => {
             await AsyncStorage.setItem('@User', JSON.stringify(response.data.response.players[0]))
             console.log("User Updated from DB, set to " + JSON.stringify(response.data.response.players[0]));
-            return 1
+            //return JSON.stringify(response.data.response.players[0])
         })
         .catch((response) => {
             console.log("Error getting user from DB");
             console.log(response);
-            return
+            //return null
         });
 }
 
 async function updateOwnedGames(id) {
-    axios.get(("https://rmf8ha7aob.execute-api.us-east-2.amazonaws.com/Prod/IPlayerService/GetOwnedGames/v1/?steamid=" + id + "&include_appinfo=true&include_played_free_games=true&include_free_sub=false&skip_unvetted_apps=true&include_extended_appinfo=true"))
+    await axios.get(("https://rmf8ha7aob.execute-api.us-east-2.amazonaws.com/Prod/IPlayerService/GetOwnedGames/v1/?steamid=" + id + "&include_appinfo=true&include_played_free_games=true&include_free_sub=false&skip_unvetted_apps=true&include_extended_appinfo=true"))
         .then(async (response) => {
             if (response !== null) {
                 await AsyncStorage.setItem('@OwnedGames', JSON.stringify(response.data.response));
                 //console.log(response.data);
                 console.log(id);
                 console.log("Owned games updated from DB");
-                return
             }
         })
         .catch((response) => {
             console.log("Error getting all owned games from DB");
             console.log(response);
-            return
         });
 }
 
 async function updateRecentlyPlayedGames(id) {
-    axios.get(("https://rmf8ha7aob.execute-api.us-east-2.amazonaws.com/Prod/IPlayerService/GetRecentlyPlayedGames/v0001/?steamid=" + id + "&format=json"))
+    await axios.get(("https://rmf8ha7aob.execute-api.us-east-2.amazonaws.com/Prod/IPlayerService/GetRecentlyPlayedGames/v0001/?steamid=" + id + "&format=json"))
         .then(async (response) => {
             await AsyncStorage.setItem('@RecentGames', JSON.stringify(response.data.response));
             //console.log("Recently played games updated from DB");
-            return
         })
         .catch((response) => {
             console.log("Error getting recently played games from DB");
             console.log(response);
-            return
         });
 }
 
