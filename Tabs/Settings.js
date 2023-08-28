@@ -73,7 +73,7 @@ const Settings = ({ navigation }) => {
         <Box bg={useColorModeValue("gray.100", "gray.800")} h="full">
             <Box margin="10" padding="2" marginTop="100">
                 <Skeleton h={50} isLoaded={isLoggedIn}>
-                    <Text alignSelf="center">Click below to logout, you will need to enter your steamID again.</Text>
+                    <Text alignSelf="center" textAlign="center">Click below to logout, you will need to enter your steamID again.</Text>
                     <Button my="4"  onPress={logout} bg={useColorModeValue("blue.500", "green.500")}>Log Out</Button>
                     <Text mt="4" alignSelf="center" >Click below to toggle to <Text>{useColorModeValue("Light Mode", "Dark Mode")}</Text></Text>
                     <Button my="4" onPress={toggleColor} ><Text color="white">{useColorModeValue("Light Mode", "Dark Mode")}</Text></Button>

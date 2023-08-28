@@ -255,16 +255,11 @@ const Profile = ({ route, navigation }) => {
                 console.log("gamePromises length is: " + gamesPromises.length)
                 console.log(gamesPromises)
 
+                let gameIter = 0;
                 for(let i = 0; i < gamesPromises.length; i++) {
-                    //console.log(gamesPromises[i])
                     await Promise.all(gamesPromises[i]).then((response) => {
-                        console.log("data is: " + response[0].data)
-                        let gameIter = 0;
                         response.forEach(async game => {
                             let appid = allGames['games'][gameIter]['appid'];
-                            //console.log(game)
-                            //console.log(game.data[appid]['data'])
-                            //console.log(gameIter)
                             try {
                                 if (game.data[appid]['data']['is_free']) {
                                     //idk dont do the other things if its free (itll break)
