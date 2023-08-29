@@ -387,7 +387,7 @@ const Profile = ({ route, navigation }) => {
                         <HStack>
                             <Image source={{ uri: user['avatarfull'] }} alt="Profile Picture" rounded={'lg'} style={{ height: 100, width: 100 }} />
                             <VStack flex={1}>
-                                <Progress w="90%" value={((totalGamesPlayed / totalGamesOwned) * 100).toFixed(1)} alignSelf="center" mt='5' />
+                                <Progress w="90%" value={((totalGamesPlayed / totalGamesOwned) * 100).toFixed(1)} alignSelf="center" mt='5' bg={useColorModeValue('gray.300', 'gray.700')} />
                                 <Text fontSize={'xs'} color={useColorModeValue('dark.400', 'dark.500')} alignSelf={'center'}>{totalGamesPlayed}/{totalGamesOwned}</Text>
                                 <HStack flex={1} alignItems={'center'} justifyContent='space-around'>
                                     <Center>
